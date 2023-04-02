@@ -25,11 +25,9 @@ public static void main(String args[]){
 		//HANDSHAKE
 		//Send HELO
 		out.write(("HELO\n").getBytes()); 
-		//System.out.println("Sent: HELO");
 	
 		//Recieve OK 
 		String serverMessage = in.readLine();
-		//System.out.println("Recieved: "+serverMessage);
 	
 		//Send AUTH
 		String username= System.getProperty("user.name");
@@ -37,78 +35,63 @@ public static void main(String args[]){
 	
 		//Recieve OK
 		serverMessage = in.readLine();
-		//System.out.println("Recieved: "+serverMessage);
-		int numOfLargServers=1;
+		int numOfLargServers=0;
         String serverType ="";
 
-		//Send REDY for first job (will be asked again)
+		//Send REDY for first job 
 		out.write("REDY\n".getBytes());
 		String jobState = in.readLine();
 
         //Sent GETS message
-				out.write(("GETS All\n").getBytes()); 
-				//Recieve DATA nRecs recSize
-				serverMessage = in.readLine();
-				System.out.println("GETS is: "+serverMessage);
+		out.write(("GETS All\n").getBytes()); 
+		//Recieve DATA nRecs recSize
+		serverMessage = in.readLine();
 				
-				//extract nRecs
-				String [] arrOfMess = serverMessage.split(" ");
-				int nRecs = Integer.valueOf(arrOfMess[1]);
+		//extract nRecs
+		String [] arrOfMess = serverMessage.split(" ");
+		int nRecs = Integer.valueOf(arrOfMess[1]);
 					
-				//Send OK
-				out.write(("OK\n").getBytes());
+		//Send OK
+		out.write(("OK\n").getBytes());
 					
 					
-				//Recieve each record of servers
-				String [] servers = new String[nRecs]; 
-				
-
-				int biggestCore = 0;
-				int serverID=0;
-				int serverCores=0;
+		//Recieve each record of servers
+		String [] servers = new String[nRecs]; 
+		int biggestCore = 0;
+		int serverCores=0;
 				
 
-				for(int i=0;i<nRecs;i++){
-					servers[i] = in.readLine();	
-					//System.out.println(servers[i]);
-					String [] serverInfo = servers[i].split(" ");
-					//System.out.println(Arrays.toString(serverInfo));						
-					serverCores = Integer.valueOf(serverInfo[4]);
+		for(int i=0;i<nRecs;i++){
+			servers[i] = in.readLine();	
+			String [] serverInfo = servers[i].split(" ");					
+			serverCores = Integer.valueOf(serverInfo[4]);
 
-						if(serverCores>=biggestCore){
-							biggestCore=serverCores;
-							//System.out.println("Largest no. of Cores: " + serverCores);
-							serverType = serverInfo[0];
-							//System.out.println("Server Type: "+serverType);
-							serverID = Integer.valueOf(serverInfo[1]);
-							//System.out.println("Server ID: "+serverID);
-						}
-
+			if(serverCores>=biggestCore){
+				biggestCore=serverCores;
+				serverType = serverInfo[0];
 				}
 
+		}
+
 				
-				System.out.println("Largest no. of Cores: "+biggestCore);
-				System.out.println("Server Type: "+serverType);
-				System.out.println("Server ID: "+serverID);
+		// System.out.println("Largest no. of Cores: "+biggestCore);
+		// System.out.println("Server Type: "+serverType);
 
-				numOfLargServers=0;
-				for(int i=0; i<nRecs;i++){
-					//System.out.println("entering");
-					String [] serverInfo = servers[i].split(" ");
-					String typeTemp = serverInfo[0];
-					//System.out.println("comparing "+typeTemp+" and "+serverType);
-					if(serverType.equals(typeTemp)){
-						//System.out.println("iterating");
-						numOfLargServers++;
-					}
-				}
+		//finding the number of servers of serverType
+		for(int i=0; i<nRecs;i++){
+			String [] serverInfo = servers[i].split(" ");
+			String typeTemp = serverInfo[0];
+			if(serverType.equals(typeTemp)){
+				numOfLargServers++;
+			}
+		}
 
-		System.out.println("number of large servers:"+numOfLargServers);
+		//Ready to 
 		out.write("OK\n".getBytes());
 		in.readLine();
 
 		int serverCounter=0;
-
+		boolean initialJob=true;
 
 		//While last message is not NONE
 		while(!jobState.equals("NONE")){
@@ -120,20 +103,23 @@ public static void main(String args[]){
 
 			if(jobCommand.equals("JOBN")){
 				int jobID = Integer.valueOf(jobInfo[2]);
-                //Round-Robin
+                
+				//Round-Robin
                 if(serverCounter>=numOfLargServers){
                     serverCounter=0;
                 }
 
-				//Send OK
-				out.write(("OK\n").getBytes());
-				//System.out.println("sending OK");
+				if(!initialJob){
+					//Send OK
+					out.write(("OK\n").getBytes());
+					//System.out.println("sending OK");
 				
+					//Recieve .
+					serverMessage = in.readLine();
+					//System.out.println("Server says: "+serverMessage);
+				}
 				
-				//Recieve .
-				serverMessage = in.readLine();
-				//System.out.println("Server says: "+serverMessage);
-			
+				initialJob=false;
 				//SCHDuling the JOBN
 				System.out.println("Scheduling job:SCHD "+jobID+" "+serverType+" "+serverCounter+"\n");
 				out.write(("SCHD "+jobID+" "+serverType+" "+serverCounter+"\n").getBytes());
@@ -145,9 +131,10 @@ public static void main(String args[]){
 
 			} 
 			else{
-
+				//if JCLP do nothing
 			}
 			
+			//REDY for next job and reading in
 			out.write("REDY\n".getBytes());
 			jobState = in.readLine();
 			System.out.println("job is: "+jobState);

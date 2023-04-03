@@ -1,6 +1,7 @@
 
 import java.net.*;  
 import java.io.*;  
+import java.util.Arrays;
 
 class MyClient{  
 public static void main(String args[]){  
@@ -73,11 +74,13 @@ public static void main(String args[]){
 
 		}
 
+
 				
 		// System.out.println("Largest no. of Cores: "+biggestCore);
 		// System.out.println("Server Type: "+serverType);
 
 		//finding the number of servers of serverType
+
 		for(int i=0; i<nRecs;i++){
 			String [] serverInfo = servers[i].split(" ");
 			String typeTemp = serverInfo[0];
@@ -85,6 +88,9 @@ public static void main(String args[]){
 				numOfLargServers++;
 			}
 		}
+
+		//clearing memory
+		Arrays.fill(servers, null);
 
 		//Ready to 
 		out.write("OK\n".getBytes());

@@ -147,6 +147,7 @@ public static void main(String args[]){
 		
 		//Recieve QUIT
 	 	in.readLine();
+		System.out.println("Goodbye and thank you for using this job scheduler :)");
 	
 	 	//Close the socket
 		in.close();
